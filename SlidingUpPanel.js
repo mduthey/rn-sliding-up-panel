@@ -42,6 +42,7 @@ class SlidingUpPanel extends React.PureComponent {
     snappingPoints: PropTypes.arrayOf(PropTypes.number),
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
+    hideVelocity: PropTypes.number,
     avoidKeyboard: PropTypes.bool,
     onBackButtonPress: PropTypes.func,
     onDragStart: PropTypes.func,
@@ -49,6 +50,7 @@ class SlidingUpPanel extends React.PureComponent {
     onMomentumDragStart: PropTypes.func,
     onMomentumDragEnd: PropTypes.func,
     onBottomReached: PropTypes.func,
+    onHide: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -66,6 +68,7 @@ class SlidingUpPanel extends React.PureComponent {
     snappingPoints: [],
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
+    hideVelocity: 2,
     avoidKeyboard: true,
     onBackButtonPress: null,
     onDragStart: () => {},
@@ -78,6 +81,7 @@ class SlidingUpPanel extends React.PureComponent {
     backdropOpacity: 0.75,
     friction: Constants.DEFAULT_FRICTION,
     onBottomReached: () => null,
+    onHide: () => {}
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -367,7 +371,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._keyboardYPosition = value
   }
 
-  _triggerAnimation(options = {}) {
+  _triggerAnimation(options = {}, callback) {
     const animatedValue = this.props.animatedValue.__getValue()
     const remainingDistance = animatedValue - options.toValue
     const velocity = options.velocity || remainingDistance / Constants.TIME_CONSTANT // prettier-ignore
@@ -376,7 +380,8 @@ class SlidingUpPanel extends React.PureComponent {
       velocity,
       toValue: options.toValue,
       fromValue: animatedValue,
-      friction: this.props.friction
+      friction: this.props.friction,
+      onMomentumEnd: callback
     })
   }
 
@@ -470,7 +475,7 @@ class SlidingUpPanel extends React.PureComponent {
 
   hide() {
     const {bottom} = this.props.draggableRange
-    this._triggerAnimation({toValue: bottom})
+    this._triggerAnimation({toValue: bottom, velocity: this.props.hideVelocity }, this.props.onHide)
   }
 
   async scrollIntoView(node, options = {}) {
